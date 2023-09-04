@@ -1,0 +1,20 @@
+button.run-code {
+  position: absolute;
+  top: 0.5rem;
+  right: 2rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 0.75rem;
+  background: green;
+  cursor: pointer;
+  padding-left: 2px;
+}
+button.run-code::after {
+  display: block;
+  width: 0.6rem;
+  height: 0.8rem;
+  margin: 0 auto;
+  content: "";
+  background-color: currentcolor;
+  -webkit-mask-image: url('data:image/svg+xml;charset=utf-8;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzODQgNTEyIj48cGF0aCBkPSJNNzMgMzljLTE0LjgtOS4xLTMzLjQtOS40LTQ4LjUtLjlTMCA2Mi42IDAgODBWNDMyYzAgMTcuNCA5LjQgMzMuNCAyNC41IDQxLjlzMzMuNyA4LjEgNDguNS0uOUwzNjEgMjk3YzE0LjMtOC43IDIzLTI0LjIgMjMtNDFzLTguNy0zMi4yLTIzLTQxTDczIDM5eiIvPjwvc3ZnPg==');
+}
