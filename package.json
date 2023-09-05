@@ -5,14 +5,16 @@
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build_main": "esbuild src/main.js --bundle --outfile=run_code_main.min.js",
-    "build_worker": "esbuild src/worker.js --bundle --outfile=run_code_worker.min.js",
+    "build_main": "esbuild src/main.js --minify --bundle --outfile=dist/run_code_main.min.js",
+    "build_worker": "esbuild src/worker.js --minify --bundle --outfile=dist/run_code_worker.min.js",
     "build": "npm run build_main && npm run build_worker"
   },
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@codemirror/lang-python": "^6.1.3",
     "ansi-to-html": "^0.7.2",
+    "codemirror": "^6.0.1",
     "esbuild": "^0.19.2",
     "pyodide": "^0.23.4"
   }
