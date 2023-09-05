@@ -1,4 +1,5 @@
 import {EditorView, basicSetup} from 'codemirror'
+import { indentUnit } from '@codemirror/language'
 import {python} from '@codemirror/lang-python'
 import Convert from 'ansi-to-html'
 import './run_code.css'
@@ -43,26 +44,31 @@ worker.onmessage = ({data}) => {
       terminal_output += extra;
     }
   }
-  console.log('terminal_output:', terminal_output)
   output_el.innerHTML = ansi_converter.toHtml(terminal_output);
   // scrolls to the bottom of the div
   output_el.scrollIntoView(false);
 };
 
 async function run_block(block_root) {
-  let pre_el = block_root.querySelector('code')
-  let python_code = pre_el.innerText
-  pre_el.innerHTML = ''
+  const cm_el = block_root.querySelector('.cm-content')
+  let python_code
+  if (cm_el) {
+    python_code = cm_el.cmView.view.state.doc.toString()
+  } else {
+    let pre_el = block_root.querySelector('code')
+    python_code = pre_el.innerText
+    pre_el.innerHTML = ''
 
-  let editor = new EditorView({
-    extensions: [basicSetup, python()],
-    parent: block_root,
-    doc: python_code,
-  })
+    new EditorView({
+      extensions: [basicSetup, python(), indentUnit.of('    ')],
+      parent: block_root,
+      doc: python_code,
+    })
+  }
 
   terminal_output = '';
   output_el = document.getElementById('output');
-  output_el.innerText = 'Starting Python...';
+  output_el.innerText = 'Starting Python and installing dependencies...';
   python_code = python_code.replace(new RegExp(`^ {8}`, 'gm'), '')
   worker.postMessage(python_code);
 }
