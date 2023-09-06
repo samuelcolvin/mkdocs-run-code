@@ -55,6 +55,7 @@ async function load() {
     await micropip.install([`pydantic==${pydantic_version}`]) // TODO use query_args`
 
     await pyodide.runPythonAsync(
+      // language=python
       `
 def reformat_exception():
     import sys
