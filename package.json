@@ -6,10 +6,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "format": "prettier --write '**/*.{ts,js,json}'",
-    "lint": "eslint --max-warnings=0 src && prettier --check 'src/*.{ts,js,json}'",
+    "lint": "eslint --max-warnings=0 src && prettier --check '**/*.{ts,js,json}'",
     "typecheck": "tsc",
     "build_main": "esbuild src/main.ts --minify --bundle --outfile=dist/run_code_main.js",
-    "build_worker": "esbuild src/worker.js --bundle --outfile=dist/run_code_worker.js",
+    "build_worker": "esbuild src/worker.ts --bundle --outfile=dist/run_code_worker.js",
     "build": "npm run build_main && npm run build_worker"
   },
   "author": "Samuel Colvin",
@@ -24,44 +24,12 @@
   "eslintConfig": {
     "root": true,
     "extends": [
-      "eslint:recommended"
+      "typescript",
+      "prettier"
     ],
-    "overrides": [
-      {
-        "files": [
-          "**/*.ts"
-        ],
-        "parser": "@typescript-eslint/parser",
-        "extends": [
-          "typescript",
-          "prettier"
-        ],
-        "rules": {
-          "@typescript-eslint/explicit-module-boundary-types": "off",
-          "@typescript-eslint/no-explicit-any": "off",
-          "no-constant-condition": "off"
-        }
-      },
-      {
-        "files": [
-          "src/worker.js"
-        ],
-        "env": {
-          "es2020": true,
-          "worker": true
-        },
-        "globals": {
-          "loadPyodide": true
-        },
-        "parserOptions": {
-          "ecmaVersion": 12,
-          "sourceType": "module"
-        },
-        "extends": [
-          "prettier"
-        ]
-      }
-    ]
+    "rules": {
+      "@typescript-eslint/no-explicit-any": "off"
+    }
   },
   "dependencies": {
     "@codemirror/lang-python": "^6.1.3",
