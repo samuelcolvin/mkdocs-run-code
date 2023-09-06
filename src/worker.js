@@ -55,25 +55,6 @@ function setupStreams(FS, TTY) {
   FS.open('/dev/stderr', 1);
 }
 
-async function get(url, mode) {
-  const r = await fetch(url);
-  if (r.ok) {
-    if (mode === 'text') {
-      return await r.text();
-    } else if (mode === 'json') {
-      return await r.json();
-    } else {
-      const blob = await r.blob();
-      let buffer = await blob.arrayBuffer();
-      return btoa(new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), ''));
-    }
-  } else {
-    let text = await r.text();
-    console.error('unexpected response', r, text);
-    throw new Error(`${r.status}: ${text}`);
-  }
-}
-
 let reformat_exception = null;
 
 const log = (msg) => {
