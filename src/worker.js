@@ -62,6 +62,8 @@ const log = (msg) => {
   self.postMessage(msg + '\n')
 }
 
+let pyodide = null
+
 async function load() {
   if (reformat_exception === null) {
     console.debug('Downloading pyodide...')
@@ -115,7 +117,7 @@ self.onmessage = async (event) => {
   } catch (e) {
     post()
     log(`Error starting Python: ${e}`)
-    return
+    throw e
   }
   await pyodide.runPythonAsync(`
 import pydantic, pydantic_core

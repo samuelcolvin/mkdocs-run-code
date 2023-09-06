@@ -14,7 +14,7 @@ function load_css() {
   )
   if (srcEl) {
     const srcUrl = srcEl.src
-    link.href = srcUrl.replace(/\.js$/, '.min.css')
+    link.href = srcUrl.replace(/\.js$/, '.css')
     head.appendChild(link)
   } else {
     throw new Error('could not find script tag for `run_code_main.js`.')

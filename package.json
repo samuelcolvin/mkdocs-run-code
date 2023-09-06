@@ -9,7 +9,7 @@
     "lint": "eslint --max-warnings=0 src && prettier --check 'src/*.{ts,js,json}'",
     "typecheck": "tsc",
     "build_main": "esbuild src/main.ts --minify --bundle --outfile=dist/run_code_main.js",
-    "build_worker": "esbuild src/worker.js --minify --bundle --outfile=dist/run_code_worker.js",
+    "build_worker": "esbuild src/worker.js --bundle --outfile=dist/run_code_worker.js",
     "build": "npm run build_main && npm run build_worker"
   },
   "author": "Samuel Colvin",
@@ -51,7 +51,6 @@
           "worker": true
         },
         "globals": {
-          "pyodide": true,
           "loadPyodide": true
         },
         "parserOptions": {
