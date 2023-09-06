@@ -1,61 +1,61 @@
-let chunks = [];
-let last_post = 0;
+let chunks = []
+let last_post = 0
 
 function print(tty) {
   if (tty.output && tty.output.length > 0) {
-    chunks.push(tty.output);
-    tty.output = [];
-    const now = performance.now();
+    chunks.push(tty.output)
+    tty.output = []
+    const now = performance.now()
     if (now - last_post > 100) {
-      post();
-      last_post = now;
+      post()
+      last_post = now
     }
   }
 }
 
 function post() {
-  self.postMessage(chunks);
-  chunks = [];
+  self.postMessage(chunks)
+  chunks = []
 }
 
 function make_tty_ops() {
   return {
     put_char(tty, val) {
       if (val !== null) {
-        tty.output.push(val);
+        tty.output.push(val)
       }
       if (val === null || val === 10) {
-        print(tty);
+        print(tty)
       }
     },
     fsync(tty) {
-      print(tty);
+      print(tty)
     },
-  };
+  }
 }
 
 function setupStreams(FS, TTY) {
-  let mytty = FS.makedev(FS.createDevice.major++, 0);
-  let myttyerr = FS.makedev(FS.createDevice.major++, 0);
-  TTY.register(mytty, make_tty_ops());
-  TTY.register(myttyerr, make_tty_ops());
-  FS.mkdev('/dev/mytty', mytty);
-  FS.mkdev('/dev/myttyerr', myttyerr);
-  FS.unlink('/dev/stdin');
-  FS.unlink('/dev/stdout');
-  FS.unlink('/dev/stderr');
-  FS.symlink('/dev/mytty', '/dev/stdin');
-  FS.symlink('/dev/mytty', '/dev/stdout');
-  FS.symlink('/dev/myttyerr', '/dev/stderr');
-  FS.closeStream(0);
-  FS.closeStream(1);
-  FS.closeStream(2);
-  FS.open('/dev/stdin', 0);
-  FS.open('/dev/stdout', 1);
-  FS.open('/dev/stderr', 1);
+  let mytty = FS.makedev(FS.createDevice.major++, 0)
+  let myttyerr = FS.makedev(FS.createDevice.major++, 0)
+  TTY.register(mytty, make_tty_ops())
+  TTY.register(myttyerr, make_tty_ops())
+  FS.mkdev('/dev/mytty', mytty)
+  FS.mkdev('/dev/myttyerr', myttyerr)
+  FS.unlink('/dev/stdin')
+  FS.unlink('/dev/stdout')
+  FS.unlink('/dev/stderr')
+  FS.symlink('/dev/mytty', '/dev/stdin')
+  FS.symlink('/dev/mytty', '/dev/stdout')
+  FS.symlink('/dev/myttyerr', '/dev/stderr')
+  FS.closeStream(0)
+  FS.closeStream(1)
+  FS.closeStream(2)
+  FS.open('/dev/stdin', 0)
+  FS.open('/dev/stdout', 1)
+  FS.open('/dev/stderr', 1)
 }
 
-let reformat_exception = null;
+let reformat_exception = null
 
 const log = (msg) => {
   console.debug('log:', msg)
@@ -65,15 +65,17 @@ const log = (msg) => {
 async function load() {
   if (reformat_exception === null) {
     console.debug('Downloading pyodide...')
-    await importScripts('https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js');
+    await importScripts(
+      'https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js',
+    )
 
     console.debug('Loading pyodide...')
-    pyodide = await loadPyodide();
-    const {FS} = pyodide;
-    setupStreams(FS, pyodide._module.TTY);
+    pyodide = await loadPyodide()
+    const { FS } = pyodide
+    setupStreams(FS, pyodide._module.TTY)
 
     console.debug('Loading micropip...')
-    await pyodide.loadPackage(['micropip']);
+    await pyodide.loadPackage(['micropip'])
     const micropip = pyodide.pyimport('micropip')
 
     const pydantic_core_version = '2.6.3'
@@ -100,9 +102,10 @@ def reformat_exception():
     lines.pop(1)
     lines.pop(1)
     return ''.join(lines)
-`);
+`,
+    )
 
-    reformat_exception = pyodide.globals.get("reformat_exception");
+    reformat_exception = pyodide.globals.get('reformat_exception')
   }
 }
 
@@ -119,11 +122,11 @@ import pydantic, pydantic_core
 print(f'pydantic version: v{pydantic.__version__}, pydantic-core version: v{pydantic_core.__version__}')
 `)
   try {
-    await pyodide.runPythonAsync(event.data);
+    await pyodide.runPythonAsync(event.data)
   } catch (e) {
     post()
     log(reformat_exception())
     return
   }
   post()
-};
+}
