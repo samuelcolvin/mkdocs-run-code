@@ -4,16 +4,17 @@ import {python} from '@codemirror/lang-python'
 import Convert from 'ansi-to-html'
 import './run_code.css'
 
-const ansi_converter = new Convert()
-const decoder = new TextDecoder();
-
-// add th required styles to the page
-const head = document.head;
-const link = document.createElement('link');
-link.type = 'text/css';
-link.rel = 'stylesheet';
-link.href = './dist/run_code.css';
-head.appendChild(link);
+function load_css() {
+  const head = document.head;
+  const link = document.createElement('link');
+  link.type = 'text/css';
+  link.rel = 'stylesheet';
+  const srcEl = document.querySelector('script[src*="run_code_main.min.js"]')
+  let srcUrl = srcEl.src
+  link.href = srcUrl.replace(/\.js$/, '.css');
+  head.appendChild(link);
+}
+load_css()
 
 
 document.querySelectorAll('.language-py pre').forEach((block) => {
@@ -32,6 +33,8 @@ const query_args = new URLSearchParams(location.search);
 query_args.set('ts', Date.now());
 
 let output_el
+const ansi_converter = new Convert()
+const decoder = new TextDecoder();
 
 const worker = new Worker(`./dist/run_code_worker.min.js?${query_args.toString()}`);
 worker.onmessage = ({data}) => {
@@ -49,7 +52,7 @@ worker.onmessage = ({data}) => {
   output_el.scrollIntoView(false);
 };
 
-async function run_block(block_root) {
+function run_block(block_root) {
   const cm_el = block_root.querySelector('.cm-content')
   let python_code
   if (cm_el) {
