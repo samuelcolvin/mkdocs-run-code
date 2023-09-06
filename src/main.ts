@@ -1,6 +1,7 @@
 import { EditorView, minimalSetup } from 'codemirror'
 import { indentUnit } from '@codemirror/language'
 import { lineNumbers } from '@codemirror/view'
+import { dracula } from '@uiw/codemirror-theme-dracula'
 import { python } from '@codemirror/lang-python'
 import Convert from 'ansi-to-html'
 import './run_code.css'
@@ -16,7 +17,7 @@ function load_css(): Promise<void> {
     )
     if (srcEl) {
       const srcUrl = srcEl.src
-      link.href = srcUrl.replace(/\.js$/, '.css')
+      link.href = srcUrl.replace('.js', '.css')
       head.appendChild(link)
       link.addEventListener('load', () => resolve())
     } else {
@@ -63,6 +64,7 @@ class CodeBlock {
 
   constructor(block: Element) {
     this.block = block
+
     const pre = block.querySelector('pre') as HTMLElement
 
     const playBtn = document.createElement('button')
@@ -102,13 +104,20 @@ class CodeBlock {
       this.codeEl.classList.add('hide-code')
       this.codeEl.innerText = ''
 
+      const extensions = [
+        minimalSetup,
+        lineNumbers(),
+        python(),
+        indentUnit.of('    '),
+      ]
+
+      const back = parseInt(window.getComputedStyle(this.codeEl).backgroundColor.match(/\d+/g)![0])
+      if (back < 128) {
+        extensions.push(dracula)
+      }
+
       new EditorView({
-        extensions: [
-          minimalSetup,
-          lineNumbers(),
-          python(),
-          indentUnit.of('    '),
-        ],
+        extensions,
         parent: this.block,
         doc: python_code,
       })
@@ -188,5 +197,18 @@ class CodeBlock {
       // scrolls to the bottom of the div
       output_el.scrollIntoView(false)
     }
+  }
+}
+
+function isDark(): boolean {
+  const local_storage = localStorage['/latest/.__palette']
+  if (local_storage) {
+    console.log('local storage:', local_storage)
+    const palette = JSON.parse(local_storage)
+    console.log('is dark:', palette?.color.scheme == 'dark')
+    return palette?.color.scheme == 'dark'
+  } else {
+    console.log('is dark', window.matchMedia('(prefers-color-scheme: dark)').matches)
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
   }
 }

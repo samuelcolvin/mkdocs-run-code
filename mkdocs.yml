@@ -4,6 +4,21 @@ strict: true
 
 theme:
   name: 'material'
+  palette:
+  - media: "(prefers-color-scheme: light)"
+    scheme: default
+    primary: pink
+    accent: pink
+    toggle:
+      icon: material/lightbulb-outline
+      name: "Switch to dark mode"
+  - media: "(prefers-color-scheme: dark)"
+    scheme: slate
+    primary: pink
+    accent: pink
+    toggle:
+      icon: material/lightbulb
+      name: "Switch to light mode"
   features:
   - content.tabs.link
   - content.code.annotate
@@ -12,7 +27,8 @@ theme:
   - navigation.tabs
 
 extra_javascript:
-- 'dist/run_code_main.js'
+- 'dist/run_code_main.js?v1'
+#- 'https://samuelcolvin.github.io/mkdocs-run-code/run_code_main.js'
 
 markdown_extensions:
 - tables

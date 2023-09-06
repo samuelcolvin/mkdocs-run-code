@@ -10,7 +10,7 @@
   /*outline: 1px dashed red;*/
 }
 
-.run-code-btn:focus, .run-code-btn:hover {
+.run-code-btn:focus, .run-code-btn:hover, :hover>.run-code-btn {
   color: var(--md-accent-fg-color);
 }
 
