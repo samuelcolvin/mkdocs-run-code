@@ -6,31 +6,41 @@ import { python } from '@codemirror/lang-python'
 import Convert from 'ansi-to-html'
 import './run_code.css'
 
+function getUrl(filename: string, query?: URLSearchParams): string {
+  const srcEl: HTMLScriptElement | null = document.querySelector(
+    'script[src*="run_code_main.js"]',
+  )
+  if (srcEl) {
+    const url = new URL(srcEl.src)
+    url.search = ''
+    // remove the filename from the pathname
+    url.pathname = url.pathname.replace('run_code_main.js', '')
+    url.pathname += filename
+    if (query) {
+      url.search = '?' + query.toString()
+    }
+    return url.toString()
+  } else {
+    throw new Error('could not find script tag for `run_code_main.js`.')
+  }
+}
+
 function load_css(): Promise<void> {
   return new Promise((resolve) => {
     const head = document.head
     const link = document.createElement('link')
     link.type = 'text/css'
     link.rel = 'stylesheet'
-    const srcEl: HTMLScriptElement | null = document.querySelector(
-      'script[src*="run_code_main.js"]',
-    )
-    if (srcEl) {
-      const srcUrl = srcEl.src
-      link.href = srcUrl.replace('.js', '.css')
-      head.appendChild(link)
-      link.addEventListener('load', () => resolve())
-    } else {
-      throw new Error('could not find script tag for `run_code_main.js`.')
-    }
+    link.href = getUrl('run_code_main.css')
+    head.appendChild(link)
+    link.addEventListener('load', () => resolve())
   })
 }
-load_css()
 
 function startWorker(): Worker {
   const query_args = new URLSearchParams(location.search)
   query_args.set('ts', Date.now().toString())
-  return new Worker(`./dist/run_code_worker.js?${query_args.toString()}`)
+  return new Worker(getUrl('run_code_worker.js', query_args))
 }
 const worker = startWorker()
 const ansi_converter = new Convert()
@@ -69,11 +79,13 @@ class CodeBlock {
 
     const playBtn = document.createElement('button')
     playBtn.className = 'run-code-btn play-btn'
+    playBtn.title = 'Run code'
     playBtn.addEventListener('click', this.run.bind(this))
     pre.appendChild(playBtn)
 
     this.resetBtn = document.createElement('button')
     this.resetBtn.className = 'run-code-btn reset-btn run-code-hidden'
+    this.resetBtn.title = 'Reset code'
     this.resetBtn.addEventListener('click', this.reset.bind(this))
     pre.appendChild(this.resetBtn)
 
@@ -111,7 +123,9 @@ class CodeBlock {
         indentUnit.of('    '),
       ]
 
-      const back = parseInt(window.getComputedStyle(this.codeEl).backgroundColor.match(/\d+/g)![0])
+      const back = parseInt(
+        window.getComputedStyle(this.codeEl).backgroundColor.match(/\d+/g)![0],
+      )
       if (back < 128) {
         extensions.push(dracula)
       }
@@ -197,18 +211,5 @@ class CodeBlock {
       // scrolls to the bottom of the div
       output_el.scrollIntoView(false)
     }
-  }
-}
-
-function isDark(): boolean {
-  const local_storage = localStorage['/latest/.__palette']
-  if (local_storage) {
-    console.log('local storage:', local_storage)
-    const palette = JSON.parse(local_storage)
-    console.log('is dark:', palette?.color.scheme == 'dark')
-    return palette?.color.scheme == 'dark'
-  } else {
-    console.log('is dark', window.matchMedia('(prefers-color-scheme: dark)').matches)
-    return window.matchMedia('(prefers-color-scheme: dark)').matches
   }
 }
