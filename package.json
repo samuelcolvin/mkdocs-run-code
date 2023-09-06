@@ -7,9 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "format": "prettier --write '**/*.{ts,js,json}'",
     "lint": "tsc && eslint --max-warnings=0 src && prettier --check '**/*.{ts,js,json}'",
-    "build_main": "esbuild src/main.ts --minify --bundle --outfile=dist/run_code_main.js",
-    "build_worker": "esbuild src/worker.ts --bundle --outfile=dist/run_code_worker.js",
-    "build": "npm run build_main && npm run build_worker",
+    "build": "esbuild src/main.ts --minify --bundle --outfile=dist/run_code_main.js",
     "update-pages": "ghp-import --push dist"
   },
   "author": "Samuel Colvin",

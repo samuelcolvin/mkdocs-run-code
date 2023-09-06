@@ -4,6 +4,7 @@ import { lineNumbers } from '@codemirror/view'
 import { dracula } from '@uiw/codemirror-theme-dracula'
 import { python } from '@codemirror/lang-python'
 import Convert from 'ansi-to-html'
+import { runCode } from './run_python'
 import './run_code.css'
 
 function getUrl(filename: string, query?: URLSearchParams): string {
@@ -37,14 +38,7 @@ function load_css(): Promise<void> {
   })
 }
 
-function startWorker(): Worker {
-  const query_args = new URLSearchParams(location.search)
-  query_args.set('ts', Date.now().toString())
-  return new Worker(getUrl('run_code_worker.js', query_args))
-}
-const worker = startWorker()
 const ansi_converter = new Convert()
-const decoder = new TextDecoder()
 
 declare global {
   interface Window {
@@ -69,7 +63,7 @@ class CodeBlock {
   readonly resetBtn: HTMLElement
   readonly preEl: HTMLElement
   readonly codeEl: HTMLElement
-  readonly onMessage: ({ data }: { data: string | Uint8Array[] }) => void
+  readonly onMessage: (data: string[]) => void
   active = false
 
   constructor(block: Element) {
@@ -156,10 +150,7 @@ class CodeBlock {
     this.output_el.innerText = 'Starting Python and installing dependencies...'
     python_code = python_code.replace(new RegExp(`^ {8}`, 'gm'), '')
 
-    if (!this.active) {
-      worker.addEventListener('message', this.onMessage)
-      this.active = true
-    }
+    this.active = true
 
     // reset other code blocks
     for (const block of window.code_blocks) {
@@ -170,7 +161,7 @@ class CodeBlock {
       }
     }
 
-    worker.postMessage(python_code)
+    runCode(python_code, this.onMessage)
   }
 
   reset() {
@@ -189,22 +180,11 @@ class CodeBlock {
 
     this.resetBtn.classList.add('run-code-hidden')
 
-    if (this.active) {
-      worker.removeEventListener('message', this.onMessage)
-      this.active = false
-    }
+    this.active = false
   }
 
-  onMessageMethod({ data }: { data: string | Uint8Array[] }) {
-    if (typeof data == 'string') {
-      this.terminal_output += data
-    } else {
-      for (const chunk of data) {
-        const arr = new Uint8Array(chunk)
-        const extra = decoder.decode(arr)
-        this.terminal_output += extra
-      }
-    }
+  onMessageMethod(data: string[]) {
+    this.terminal_output += data.join('')
     const output_el = this.output_el
     if (output_el) {
       output_el.innerHTML = ansi_converter.toHtml(this.terminal_output)

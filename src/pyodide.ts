@@ -35,8 +35,17 @@ export interface Pyodide {
   globals: Map<string, any>
 }
 
-declare const importScripts: (url: string) => Promise<void>
 declare const loadPyodide: () => Promise<Pyodide>
+
+function importScripts(url: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script')
+    script.src = url
+    script.onload = () => resolve()
+    script.onerror = () => reject()
+    document.head.appendChild(script)
+  })
+}
 
 export async function downloadPyodide(): Promise<Pyodide> {
   await importScripts(

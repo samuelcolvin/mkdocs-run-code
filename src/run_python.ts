@@ -1,28 +1,35 @@
 import { downloadPyodide, preparePyodide, TTY, Pyodide } from './pyodide'
 
-const chunks: number[][] = []
+const chunks: string[] = []
 let lastPost = 0
+let updateOut: ((data: string[]) => void) | null = null
+const decoder = new TextDecoder()
 
 function print(tty: TTY) {
   if (tty.output && tty.output.length > 0) {
-    chunks.push(tty.output)
-    tty.output = []
+    const arr = new Uint8Array(tty.output)
+    chunks.push(decoder.decode(arr))
+    tty.output.length = 0
     const now = performance.now()
     if (now - lastPost > 100) {
-      post()
+      update()
       lastPost = now
     }
   }
 }
 
-function post() {
-  self.postMessage(chunks)
+function update() {
+  if (updateOut) {
+    updateOut(chunks)
+  }
   chunks.length = 0
 }
 
 function log(msg: string) {
   console.debug('log:', msg)
-  self.postMessage(msg + '\n')
+  if (updateOut) {
+    updateOut([msg + '\n'])
+  }
 }
 
 interface PyodideWrapper {
@@ -77,13 +84,18 @@ def reformat_exception():
   return _pyodideWrapper
 }
 
-self.onmessage = async (event) => {
+export async function runCode(
+  code: string,
+  onMessage: (data: string[]) => void,
+): Promise<void> {
+  updateOut = onMessage
   let py: PyodideWrapper
   try {
     py = await load()
   } catch (e) {
-    post()
+    update()
     log(`Error starting Python: ${e}`)
+    updateOut = null
     throw e
   }
   await py.pyodide.runPythonAsync(`
@@ -91,11 +103,11 @@ import pydantic, pydantic_core
 print(f'pydantic version: v{pydantic.__version__}, pydantic-core version: v{pydantic_core.__version__}')
 `)
   try {
-    await py.pyodide.runPythonAsync(event.data)
+    await py.pyodide.runPythonAsync(code)
+    update()
   } catch (e) {
-    post()
+    update()
     log(py.reformatException())
-    return
   }
-  post()
+  updateOut = null
 }
