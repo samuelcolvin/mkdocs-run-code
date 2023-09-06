@@ -1,6 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.preparePyodide = exports.downloadPyodide = void 0;
+function importScripts(url) {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = url;
+        script.onload = () => resolve();
+        script.onerror = () => reject();
+        document.head.appendChild(script);
+    });
+}
 async function downloadPyodide() {
     await importScripts('https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js');
     return await loadPyodide();

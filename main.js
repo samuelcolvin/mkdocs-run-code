@@ -9,6 +9,7 @@ const view_1 = require("@codemirror/view");
 const codemirror_theme_dracula_1 = require("@uiw/codemirror-theme-dracula");
 const lang_python_1 = require("@codemirror/lang-python");
 const ansi_to_html_1 = __importDefault(require("ansi-to-html"));
+const run_python_1 = require("./run_python");
 require("./run_code.css");
 function getUrl(filename, query) {
     const srcEl = document.querySelector('script[src*="run_code_main.js"]');
@@ -16,7 +17,7 @@ function getUrl(filename, query) {
         const url = new URL(srcEl.src);
         url.search = '';
         // remove the filename from the pathname
-        url.pathname = url.pathname.replace(/[^/]+$/, '');
+        url.pathname = url.pathname.replace('run_code_main.js', '');
         url.pathname += filename;
         if (query) {
             url.search = '?' + query.toString();
@@ -33,19 +34,12 @@ function load_css() {
         const link = document.createElement('link');
         link.type = 'text/css';
         link.rel = 'stylesheet';
-        link.href = getUrl('run_code.css');
+        link.href = getUrl('run_code_main.css');
         head.appendChild(link);
         link.addEventListener('load', () => resolve());
     });
 }
-function startWorker() {
-    const query_args = new URLSearchParams(location.search);
-    query_args.set('ts', Date.now().toString());
-    return new Worker(getUrl('run_code_worker.js', query_args));
-}
-const worker = startWorker();
 const ansi_converter = new ansi_to_html_1.default();
-const decoder = new TextDecoder();
 async function main() {
     await load_css();
     window.code_blocks = [];
@@ -69,10 +63,12 @@ class CodeBlock {
         const pre = block.querySelector('pre');
         const playBtn = document.createElement('button');
         playBtn.className = 'run-code-btn play-btn';
+        playBtn.title = 'Run code';
         playBtn.addEventListener('click', this.run.bind(this));
         pre.appendChild(playBtn);
         this.resetBtn = document.createElement('button');
         this.resetBtn.className = 'run-code-btn reset-btn run-code-hidden';
+        this.resetBtn.title = 'Reset code';
         this.resetBtn.addEventListener('click', this.reset.bind(this));
         pre.appendChild(this.resetBtn);
         const preEl = block.querySelector('pre');
@@ -131,10 +127,7 @@ class CodeBlock {
         }
         this.output_el.innerText = 'Starting Python and installing dependencies...';
         python_code = python_code.replace(new RegExp(`^ {8}`, 'gm'), '');
-        if (!this.active) {
-            worker.addEventListener('message', this.onMessage);
-            this.active = true;
-        }
+        this.active = true;
         // reset other code blocks
         for (const block of window.code_blocks) {
             if (block != this) {
@@ -143,7 +136,7 @@ class CodeBlock {
                 }
             }
         }
-        worker.postMessage(python_code);
+        (0, run_python_1.runCode)(python_code, this.onMessage);
     }
     reset() {
         const cmElement = this.block.querySelector('.cm-editor');
@@ -158,22 +151,10 @@ class CodeBlock {
         this.codeEl.innerHTML = this.code_html;
         this.codeEl.classList.remove('hide-code');
         this.resetBtn.classList.add('run-code-hidden');
-        if (this.active) {
-            worker.removeEventListener('message', this.onMessage);
-            this.active = false;
-        }
+        this.active = false;
     }
-    onMessageMethod({ data }) {
-        if (typeof data == 'string') {
-            this.terminal_output += data;
-        }
-        else {
-            for (const chunk of data) {
-                const arr = new Uint8Array(chunk);
-                const extra = decoder.decode(arr);
-                this.terminal_output += extra;
-            }
-        }
+    onMessageMethod(data) {
+        this.terminal_output += data.join('');
         const output_el = this.output_el;
         if (output_el) {
             output_el.innerHTML = ansi_converter.toHtml(this.terminal_output);
