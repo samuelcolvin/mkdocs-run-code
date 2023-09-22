@@ -50,8 +50,8 @@ async function load() {
     await pyodide.loadPackage(['micropip'])
     const micropip = pyodide.pyimport('micropip')
 
-    const pydantic_core_version = '2.6.3'
-    const pydantic_version = '2.3.0'
+    const pydantic_core_version = '2.10.0'
+    const pydantic_version = '2.4.0'
     console.debug('Installing pydantic-core...')
     const pydantic_core_wheel = `https://githubproxy.samuelcolvin.workers.dev/pydantic/pydantic-core/releases/download/v${pydantic_core_version}/pydantic_core-${pydantic_core_version}-cp311-cp311-emscripten_3_1_32_wasm32.whl`
     await micropip.install([pydantic_core_wheel])
