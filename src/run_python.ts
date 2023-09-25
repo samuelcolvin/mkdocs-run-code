@@ -39,7 +39,7 @@ interface PyodideWrapper {
 
 let _pyodideWrapper: PyodideWrapper | null = null
 
-async function load() {
+async function load(dependencies: string[]) {
   if (_pyodideWrapper === null) {
     console.debug('Downloading pyodide...')
 
@@ -50,16 +50,19 @@ async function load() {
     await pyodide.loadPackage(['micropip'])
     const micropip = pyodide.pyimport('micropip')
 
-    const pydantic_core_version = '2.6.3'
-    const pydantic_version = '2.3.0'
-    console.debug('Installing pydantic-core...')
-    const pydantic_core_wheel = `https://githubproxy.samuelcolvin.workers.dev/pydantic/pydantic-core/releases/download/v${pydantic_core_version}/pydantic_core-${pydantic_core_version}-cp311-cp311-emscripten_3_1_32_wasm32.whl`
-    await micropip.install([pydantic_core_wheel])
+    // pydantic-core requires special handling as it's installed from the file on the github release
+    const pydantic_core_dep = dependencies.find(d => d.startsWith('pydantic-core'))
+    if (pydantic_core_dep) {
+      const pydantic_core_version = pydantic_core_dep.split('==')[1]
+      console.debug('Installing pydantic-core...')
+      const pydantic_core_wheel = `https://githubproxy.samuelcolvin.workers.dev/pydantic/pydantic-core/releases/download/v${pydantic_core_version}/pydantic_core-${pydantic_core_version}-cp311-cp311-emscripten_3_1_32_wasm32.whl`
+      await micropip.install([pydantic_core_wheel])
+    }
 
-    console.debug('Installing pydantic...')
-    // const query_args = new URLSearchParams(location.search);
-    // console.log('query args:', query_args);
-    await micropip.install([`pydantic==${pydantic_version}`]) // TODO use query_args`
+    const other_deps = dependencies.filter(d => !d.startsWith('pydantic-core'))
+
+    console.debug(`Installing ${other_deps}...`)
+    await micropip.install(other_deps)
 
     await pyodide.runPythonAsync(
       // language=python
@@ -87,11 +90,12 @@ def reformat_exception():
 export async function runCode(
   code: string,
   onMessage: (data: string[]) => void,
+  dependencies: string[],
 ): Promise<void> {
   updateOut = onMessage
   let py: PyodideWrapper
   try {
-    py = await load()
+    py = await load(dependencies)
   } catch (e) {
     update()
     log(`Error starting Python: ${e}`)

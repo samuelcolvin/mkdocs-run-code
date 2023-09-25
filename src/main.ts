@@ -43,6 +43,7 @@ const ansi_converter = new Convert()
 declare global {
   interface Window {
     code_blocks: CodeBlock[]
+    mkdocs_run_deps?: string[]
   }
 }
 
@@ -161,7 +162,10 @@ class CodeBlock {
       }
     }
 
-    runCode(python_code, this.onMessage)
+    // for backwards compatibility
+    const default_deps = ['pydantic_core_version==2.6.3', 'pydantic_version==2.3.0']
+    const dependencies = window.mkdocs_run_deps || default_deps
+    runCode(python_code, this.onMessage, dependencies)
   }
 
   reset() {
