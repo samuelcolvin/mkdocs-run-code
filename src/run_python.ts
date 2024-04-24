@@ -53,9 +53,11 @@ async function load(dependencies: string[]) {
     // pydantic-core requires special handling as it's installed from the file on the github release
     const pydantic_core_dep = dependencies.find(d => d.startsWith('pydantic-core'))
     if (pydantic_core_dep) {
-      const pydantic_core_version = pydantic_core_dep.split('==')[1]
+      const pyd_c = pydantic_core_dep.split('==')[1]
+      const [_, minor] = pyd_c.split('.').map(Number)
+      const platform = minor > 17 ? 'emscripten_3_1_46_wasm32' : 'emscripten_3_1_32_wasm32'
       console.debug('Installing pydantic-core...')
-      const pydantic_core_wheel = `https://githubproxy.samuelcolvin.workers.dev/pydantic/pydantic-core/releases/download/v${pydantic_core_version}/pydantic_core-${pydantic_core_version}-cp311-cp311-emscripten_3_1_32_wasm32.whl`
+      const pydantic_core_wheel = `https://githubproxy.samuelcolvin.workers.dev/pydantic/pydantic-core/releases/download/v${pyd_c}/pydantic_core-${pyd_c}-cp311-cp311-${platform}.whl`
       await micropip.install([pydantic_core_wheel])
     }
 
