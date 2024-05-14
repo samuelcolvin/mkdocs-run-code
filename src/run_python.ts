@@ -104,8 +104,8 @@ export async function runCode(
     throw e
   }
   await py.pyodide.runPythonAsync(`
-import pydantic, pydantic_core
-print(f'pydantic version: v{pydantic.__version__}, pydantic-core version: v{pydantic_core.__version__}')
+import pydantic, pydantic_core, pydantic_extra_types
+print(f'pydantic version: v{pydantic.__version__}, pydantic-core version: v{pydantic_core.__version__}', pydantic-extra-types version: v{pydantic_extra_types.__version__}')
 `)
   try {
     await py.pyodide.runPythonAsync(code)
