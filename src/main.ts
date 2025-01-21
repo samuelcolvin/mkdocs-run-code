@@ -50,7 +50,7 @@ declare global {
 async function main() {
   await load_css()
   window.code_blocks = []
-  document.querySelectorAll('.language-py').forEach((block) => {
+  document.querySelectorAll('.language-py, .language-python').forEach((block) => {
     window.code_blocks.push(new CodeBlock(block))
   })
 }
