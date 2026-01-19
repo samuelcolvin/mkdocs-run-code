@@ -149,7 +149,6 @@ class CodeBlock {
       ) as HTMLElement
     }
     this.output_el.innerText = 'Starting Python and installing dependencies...'
-    python_code = python_code.replace(new RegExp(`^ {8}`, 'gm'), '')
 
     this.active = true
 
